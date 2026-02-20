@@ -1,0 +1,16 @@
+{
+  "name": "ddd-ts-simpleshop-entity-with-domain-service",
+  "version": "1.2.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "dev": "npm run build && npm run start"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "@types/node": "^24.10.13",
+    "ts-node": "^10.9.2"
+  }
+}
