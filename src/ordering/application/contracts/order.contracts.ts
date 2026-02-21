@@ -5,7 +5,7 @@ export type DiscountView = { code: string; percent: number } | null;
 export type SummaryItemView = {
     itemId: string;
     sku: string;
-    qty: number;
+    quantity: number;
     unitPrice: string;
     lineTotal: string;
 };

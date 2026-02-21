@@ -2,14 +2,6 @@ import { DomainError } from "../shared/domain.error";
 import { MoneyValueObject } from "../value-objects/money.value.object";
 import { OrderItemIdValueObject } from "../value-objects/order.item.id.value.object";
 
-export type OrderItemSnapshot = {
-    id: string;
-    sku: string;
-    unitPriceCents: number;
-    currency: string;
-    quantity: number;
-};
-
 /** OrderItem — Entity (имеет собственный OrderItemId). */
 export class OrderItemEntity {
     private constructor(
@@ -24,12 +16,6 @@ export class OrderItemEntity {
         if (!sku) throw new DomainError("SKU cannot be empty");
         if (!Number.isInteger(params.quantity) || params.quantity <= 0) throw new DomainError("Quantity must be a positive integer");
         return new OrderItemEntity(params.id, sku, params.unitPrice, params.quantity);
-    }
-
-    static rehydrate(s: OrderItemSnapshot): OrderItemEntity {
-        const sku = s.sku.trim();
-        if (!sku) throw new DomainError("SKU cannot be empty");
-        return new OrderItemEntity(OrderItemIdValueObject.from(s.id), sku, MoneyValueObject.of(s.unitPriceCents, s.currency), s.quantity);
     }
 
     getId(): OrderItemIdValueObject {
@@ -60,15 +46,5 @@ export class OrderItemEntity {
 
     lineTotal(): MoneyValueObject {
         return this.unitPrice.multiply(this.quantity);
-    }
-
-    snapshot(): OrderItemSnapshot {
-        return {
-            id: this.id.toString(),
-            sku: this.sku,
-            unitPriceCents: this.unitPrice.getCents(),
-            currency: this.unitPrice.getCurrency(),
-            quantity: this.quantity
-        };
     }
 }

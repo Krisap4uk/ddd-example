@@ -24,6 +24,7 @@
 ## DDD Map
 
 - `docs/ddd/evans-concepts-map.md` - где именно в коде лежат понятия из Evans DDD
+- `docs/ddd/evans-terminology-glossary.md` - словарь терминов Evans DDD и когда какой термин применять
 - `docs/ddd/context-map.md` - связи bounded contexts
 
 ## Запуск

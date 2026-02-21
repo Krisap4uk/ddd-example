@@ -8,7 +8,6 @@ export class OrderQueryService {
     async getSummary(orderId: string): Promise<GetSummaryResult> {
         const order = await mustGetOrder(this.repo, orderId);
         const total = order.total();
-        const snapshot = order.snapshot();
 
         return {
             status: order.getStatus(),
@@ -16,11 +15,11 @@ export class OrderQueryService {
             items: order.listItems().map((i) => ({
                 itemId: i.id,
                 sku: i.sku,
-                qty: i.quantity,
+                quantity: i.quantity,
                 unitPrice: formatMoney(i.unitPriceCents, i.currency),
                 lineTotal: formatMoney(i.unitPriceCents * i.quantity, i.currency),
             })),
-            discount: snapshot.discount,
+            discount: order.getDiscount(),
         };
     }
 }

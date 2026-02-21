@@ -1,8 +1,9 @@
 import { AggregateRoot } from "../shared/domain.event";
 import { DomainError } from "../shared/domain.error";
+import { DiscountPrimitive, DiscountValueObject } from "../value-objects/discount.value.object";
 import { MoneyValueObject } from "../value-objects/money.value.object";
 import { OrderIdValueObject } from "../value-objects/order.id.value.object";
-import { OrderItemEntity, OrderItemSnapshot } from "../entities/order.item.entity";
+import { OrderItemEntity } from "../entities/order.item.entity";
 import { OrderItemIdValueObject } from "../value-objects/order.item.id.value.object";
 import { DiscountPolicyPort } from "../services/discount.policy.port";
 import { OrderConfirmationSpecification } from "../specifications/order.confirmation.specification.interface";
@@ -16,20 +17,20 @@ import {
     OrderStatus,
 } from "../events/events";
 
-type Discount = { code: string; percent: number } | null;
+export type OrderDiscount = DiscountPrimitive | null;
 
-export type OrderSnapshot = {
+export type OrderItemDetails = {
     id: string;
+    sku: string;
+    unitPriceCents: number;
     currency: string;
-    status: OrderStatus;
-    items: OrderItemSnapshot[];
-    discount: Discount;
+    quantity: number;
 };
 
 export class OrderAggregate extends AggregateRoot {
     private status: OrderStatus = "DRAFT";
     private readonly items: OrderItemEntity[] = [];
-    private discount: Discount = null;
+    private discount: DiscountValueObject | null = null;
 
     private constructor(private readonly id: OrderIdValueObject, private readonly currency: string) {
         super();
@@ -42,22 +43,18 @@ export class OrderAggregate extends AggregateRoot {
         return order;
     }
 
-    static rehydrate(snapshot: OrderSnapshot): OrderAggregate {
-        const order = new OrderAggregate(OrderIdValueObject.from(snapshot.id), snapshot.currency);
-        order.status = snapshot.status;
-        order.items.push(...snapshot.items.map(OrderItemEntity.rehydrate));
-        order.discount = snapshot.discount ? { ...snapshot.discount } : null;
+    static restore(params: {
+        id: OrderIdValueObject;
+        currency: string;
+        status: OrderStatus;
+        items: OrderItemEntity[];
+        discount: DiscountValueObject | null;
+    }): OrderAggregate {
+        const order = new OrderAggregate(params.id, params.currency);
+        order.status = params.status;
+        order.items.push(...params.items);
+        order.discount = params.discount;
         return order;
-    }
-
-    snapshot(): OrderSnapshot {
-        return {
-            id: this.id.toString(),
-            currency: this.currency,
-            status: this.status,
-            items: this.items.map((i) => i.snapshot()),
-            discount: this.discount ? { ...this.discount } : null,
-        };
     }
 
     getId(): OrderIdValueObject {
@@ -72,8 +69,18 @@ export class OrderAggregate extends AggregateRoot {
         return this.currency;
     }
 
-    listItems(): ReadonlyArray<OrderItemSnapshot> {
-        return this.items.map((i) => i.snapshot());
+    getDiscount(): OrderDiscount {
+        return this.discount ? this.discount.toPrimitives() : null;
+    }
+
+    listItems(): ReadonlyArray<OrderItemDetails> {
+        return this.items.map((i) => ({
+            id: i.getId().toString(),
+            sku: i.getSku(),
+            unitPriceCents: i.getUnitPrice().getCents(),
+            currency: i.getUnitPrice().getCurrency(),
+            quantity: i.getQuantity(),
+        }));
     }
 
     addItem(
@@ -105,7 +112,7 @@ export class OrderAggregate extends AggregateRoot {
                     orderId: this.id.toString(),
                     itemId: existing.getId().toString(),
                     sku: normalizedSku,
-                    qty: quantity,
+                    quantity,
                 }),
             );
             return existing.getId();
@@ -125,7 +132,7 @@ export class OrderAggregate extends AggregateRoot {
                 orderId: this.id.toString(),
                 itemId: item.getId().toString(),
                 sku: normalizedSku,
-                qty: quantity,
+                quantity,
             }),
         );
 
@@ -159,13 +166,13 @@ export class OrderAggregate extends AggregateRoot {
         }
 
         const resolved = discountPolicy.resolve(code);
-        this.discount = { code: resolved.code, percent: resolved.percent };
+        this.discount = DiscountValueObject.of(resolved.code, resolved.percent);
 
         this.record(
             new DiscountAppliedToOrder({
                 orderId: this.id.toString(),
-                code: resolved.code,
-                percent: resolved.percent,
+                code: this.discount.getCode(),
+                percent: this.discount.getPercent(),
             }),
         );
     }
@@ -178,7 +185,7 @@ export class OrderAggregate extends AggregateRoot {
         if (!this.discount) {
             return MoneyValueObject.zero(this.currency);
         }
-        return this.totalBeforeDiscount().multiply(this.discount.percent / 100);
+        return this.totalBeforeDiscount().multiply(this.discount.getPercent() / 100);
     }
 
     total(): MoneyValueObject {

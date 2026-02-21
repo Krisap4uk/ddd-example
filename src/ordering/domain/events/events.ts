@@ -13,7 +13,7 @@ export class ItemAddedToOrder implements DomainEvent {
     readonly type = "ordering.order.itemAdded";
     readonly occurredAt = new Date();
 
-    constructor(public readonly payload: { orderId: string; itemId: string; sku: string; qty: number }) {}
+    constructor(public readonly payload: { orderId: string; itemId: string; sku: string; quantity: number }) {}
 }
 
 export class OrderItemQuantityChanged implements DomainEvent {

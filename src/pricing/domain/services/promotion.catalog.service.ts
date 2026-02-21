@@ -1,4 +1,4 @@
-import { PricingPromotion } from "../../application/interfaces/promotion.lookup.interface";
+import { Promotion } from "../models/promotion";
 
 export class PromotionCatalogService {
     private readonly known: Record<string, number> = {
@@ -6,7 +6,7 @@ export class PromotionCatalogService {
         VIP20: 0.2,
     };
 
-    resolveCoupon(code: string): PricingPromotion | null {
+    resolveCoupon(code: string): Promotion | null {
         const normalized = code.trim().toUpperCase();
         if (!normalized) {
             return null;

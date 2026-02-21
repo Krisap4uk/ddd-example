@@ -12,7 +12,7 @@
   - `OrderItemEntity`: `src/ordering/domain/entities/order.item.entity.ts`
 
 - Value Object
-  - `MoneyValueObject`, `OrderIdValueObject`, `OrderItemIdValueObject`:
+  - `MoneyValueObject`, `OrderIdValueObject`, `OrderItemIdValueObject`, `DiscountValueObject`:
     `src/ordering/domain/value-objects/*`
 
 - Aggregate / Aggregate Root
@@ -22,6 +22,7 @@
   - `DiscountPolicyPort` + реализации:
     - прямой вариант: `src/ordering/domain/services/discount.policy.service.ts`
     - через ACL: `src/ordering/infrastructure/acl/pricing.discount.policy.acl.ts`
+  - `PromotionCatalogService`: `src/pricing/domain/services/promotion.catalog.service.ts`
 
 - Repository
   - `OrderRepositoryInterface`: `src/ordering/domain/repositories/order.repository.interface.ts`
@@ -53,6 +54,7 @@
 - Bounded Context
   - `ordering` context: оформление заказа и инварианты подтверждения.
   - `pricing` context: каталог промо-правил по coupon.
+  - Domain model `Promotion`: `src/pricing/domain/models/promotion.ts`
 
 - Context Map
   - Документ: `docs/ddd/context-map.md`

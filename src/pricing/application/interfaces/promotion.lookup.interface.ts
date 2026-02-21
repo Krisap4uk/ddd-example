@@ -1,8 +1,5 @@
-export type PricingPromotion = {
-    couponCode: string;
-    discountRate: number;
-};
+import { Promotion } from "../../domain/models/promotion";
 
 export interface PromotionLookupInterface {
-    findPromotionByCoupon(code: string): PricingPromotion | null;
+    findPromotionByCoupon(code: string): Promotion | null;
 }
